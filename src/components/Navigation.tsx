@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Blocks, Menu, X, User } from 'lucide-react';
 
+// Updated navigation component
+
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
 
