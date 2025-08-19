@@ -2,41 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* BriqFi Lego-Inspired DeFi Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core Background & Text */
+    --background: 240 10% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Card System */
+    --card: 240 8% 12%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 240 8% 10%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Lego-Inspired Brand Colors */
+    --primary: 210 100% 56%; /* Bright Blue */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 345 100% 65%; /* Hot Pink */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 280 100% 70%; /* Electric Purple */
+    --accent-foreground: 0 0% 100%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Lego Block Colors */
+    --lego-red: 0 85% 60%;
+    --lego-yellow: 48 100% 67%;
+    --lego-green: 142 71% 45%;
+    --lego-orange: 24 100% 50%;
+    --lego-purple: 271 81% 56%;
+    --lego-cyan: 189 85% 60%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* UI States */
+    --muted: 240 6% 20%;
+    --muted-foreground: 240 5% 65%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --radius: 0.5rem;
+    --border: 240 6% 20%;
+    --input: 240 6% 18%;
+    --ring: 210 100% 56%;
+
+    /* Enhanced Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(210 100% 56%), hsl(345 100% 65%), hsl(280 100% 70%));
+    --gradient-lego: linear-gradient(45deg, hsl(0 85% 60%), hsl(48 100% 67%), hsl(142 71% 45%), hsl(210 100% 56%));
+    --gradient-card: linear-gradient(145deg, hsl(240 8% 15%), hsl(240 6% 10%));
+    --gradient-glow: linear-gradient(90deg, hsl(210 100% 56% / 0.3), hsl(345 100% 65% / 0.3));
+
+    /* Shadows & Effects */
+    --shadow-lego: 0 8px 32px hsl(210 100% 56% / 0.3);
+    --shadow-card: 0 4px 20px hsl(240 10% 3% / 0.4);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.4);
+
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +121,117 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    background: hsl(var(--background));
   }
+}
+
+@layer components {
+  /* Lego Block Component Styles */
+  .lego-block {
+    @apply relative rounded-2xl p-6 backdrop-blur-sm transition-all duration-300;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .lego-block:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lego);
+  }
+
+  .lego-block::before {
+    @apply absolute -top-2 left-1/2 transform -translate-x-1/2;
+    content: '';
+    width: 24px;
+    height: 12px;
+    background: hsl(var(--primary));
+    border-radius: 12px 12px 4px 4px;
+  }
+
+  /* Hero Gradient Text */
+  .gradient-text {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glowing Card Effect */
+  .glow-card {
+    position: relative;
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+  }
+
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    background: var(--gradient-glow);
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .glow-card:hover::before {
+    opacity: 1;
+  }
+
+  /* Floating Animation */
+  .float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .float-delayed {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: -2s;
+  }
+
+  .float-delayed-2 {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: -4s;
+  }
+}
+
+@layer utilities {
+  /* Custom Color Utilities */
+  .text-lego-red { color: hsl(var(--lego-red)); }
+  .text-lego-yellow { color: hsl(var(--lego-yellow)); }
+  .text-lego-green { color: hsl(var(--lego-green)); }
+  .text-lego-orange { color: hsl(var(--lego-orange)); }
+  .text-lego-purple { color: hsl(var(--lego-purple)); }
+  .text-lego-cyan { color: hsl(var(--lego-cyan)); }
+
+  .bg-lego-red { background: hsl(var(--lego-red)); }
+  .bg-lego-yellow { background: hsl(var(--lego-yellow)); }
+  .bg-lego-green { background: hsl(var(--lego-green)); }
+  .bg-lego-orange { background: hsl(var(--lego-orange)); }
+  .bg-lego-purple { background: hsl(var(--lego-purple)); }
+  .bg-lego-cyan { background: hsl(var(--lego-cyan)); }
+
+  /* Gradient Utilities */
+  .bg-gradient-hero { background: var(--gradient-hero); }
+  .bg-gradient-lego { background: var(--gradient-lego); }
+  .bg-gradient-card { background: var(--gradient-card); }
+}
+
+/* Keyframes */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.6); }
+}
+
+@keyframes lego-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
