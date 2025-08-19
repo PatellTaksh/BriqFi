@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Blocks, Wallet, Menu, X } from 'lucide-react';
+import { Blocks, Menu, X, User } from 'lucide-react';
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,8 +10,8 @@ export function Navigation() {
     { name: 'Dashboard', href: '#dashboard' },
     { name: 'Lending', href: '#lending' },
     { name: 'Borrowing', href: '#borrowing' },
-    { name: 'Auctions', href: '#auctions' },
-    { name: 'Rewards', href: '#rewards' }
+    { name: 'About', href: '#about' },
+    { name: 'Contact', href: '#contact' }
   ];
 
   return (
@@ -38,11 +38,10 @@ export function Navigation() {
               ))}
             </div>
 
-            {/* Actions */}
+            {/* Account Icon */}
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" className="hidden sm:flex">
-                <Wallet className="h-4 w-4 mr-2" />
-                Connect Wallet
+              <Button variant="ghost" size="sm" className="hidden sm:flex p-2">
+                <User className="h-5 w-5" />
               </Button>
               
               {/* Mobile menu button */}
@@ -74,9 +73,9 @@ export function Navigation() {
                 {item.name}
               </a>
             ))}
-            <Button variant="outline" size="sm" className="w-full mt-4">
-              <Wallet className="h-4 w-4 mr-2" />
-              Connect Wallet
+            <Button variant="ghost" size="sm" className="w-full mt-4 justify-center">
+              <User className="h-4 w-4 mr-2" />
+              Account
             </Button>
           </div>
         </div>
