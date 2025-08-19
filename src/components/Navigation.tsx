@@ -1,18 +1,18 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Blocks, Menu, X, User } from 'lucide-react';
 
-// Updated navigation component
-
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   const navItems = [
-    { name: 'Dashboard', href: '#dashboard' },
-    { name: 'Lending', href: '#lending' },
-    { name: 'Borrowing', href: '#borrowing' },
-    { name: 'About', href: '#about' },
+    { name: 'Dashboard', href: '/' },
+    { name: 'Lending', href: '/lending' },
+    { name: 'Borrowing', href: '/borrowing' },
+    { name: 'About', href: '/about' },
     { name: 'Contact', href: '#contact' }
   ];
 
@@ -22,21 +22,34 @@ export function Navigation() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2">
               <Blocks className="h-8 w-8 text-primary animate-pulse-glow" />
               <span className="text-2xl font-bold gradient-text">BriqFi</span>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-muted-foreground hover:text-primary transition-colors duration-200"
-                >
-                  {item.name}
-                </a>
+                item.href.startsWith('#') ? (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200"
+                  >
+                    {item.name}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      "text-muted-foreground hover:text-primary transition-colors duration-200",
+                      location.pathname === item.href && "text-primary font-medium"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                )
               ))}
             </div>
 
@@ -66,14 +79,28 @@ export function Navigation() {
         )}>
           <div className="px-4 py-4 space-y-3">
             {navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="block text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                {item.name}
-              </a>
+              item.href.startsWith('#') ? (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="block text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.name}
+                </a>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "block text-muted-foreground hover:text-primary transition-colors",
+                    location.pathname === item.href && "text-primary font-medium"
+                  )}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              )
             ))}
             <Button variant="ghost" size="sm" className="w-full mt-4 justify-center">
               <User className="h-4 w-4 mr-2" />
