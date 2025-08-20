@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Blocks, Menu, X, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/AuthModal';
-
+import { supabase } from '@/integrations/supabase/client';
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -20,6 +20,17 @@ export function Navigation() {
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' }
   ];
+
+  // Redirect to Account page after successful auth from anywhere
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        setAuthModalOpen(false);
+        navigate('/account');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   return (
     <>
