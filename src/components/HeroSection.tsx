@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { LegoBlock } from './LegoBlock';
+import { useNavigate } from 'react-router-dom';
 import { 
   Blocks, 
   TrendingUp, 
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 
 export function HeroSection() {
+  const navigate = useNavigate();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Effects */}
@@ -74,11 +76,19 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-gradient-hero text-white hover:opacity-90 transition-opacity">
+            <Button 
+              size="lg" 
+              className="bg-gradient-hero text-white hover:opacity-90 transition-opacity"
+              onClick={() => navigate('/lending')}
+            >
               Start Building
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button variant="outline" size="lg">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => navigate('/about')}
+            >
               <Blocks className="mr-2 h-5 w-5" />
               Explore Legos
             </Button>

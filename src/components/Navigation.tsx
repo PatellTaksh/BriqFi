@@ -13,7 +13,7 @@ export function Navigation() {
     { name: 'Lending', href: '/lending' },
     { name: 'Borrowing', href: '/borrowing' },
     { name: 'About', href: '/about' },
-    { name: 'Contact', href: '#contact' }
+    { name: 'Contact', href: '/contact' }
   ];
 
   return (
