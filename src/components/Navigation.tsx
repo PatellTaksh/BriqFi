@@ -1,12 +1,17 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Blocks, Menu, X, User } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { AuthModal } from '@/components/AuthModal';
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   const navItems = [
     { name: 'Dashboard', href: '/' },
@@ -55,7 +60,19 @@ export function Navigation() {
 
             {/* Account Icon */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="hidden sm:flex p-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hidden sm:flex p-2"
+                onClick={() => {
+                  if (user) {
+                    navigate('/account');
+                  } else {
+                    setAuthModalOpen(true);
+                  }
+                }}
+                disabled={loading}
+              >
                 <User className="h-5 w-5" />
               </Button>
               
@@ -102,9 +119,22 @@ export function Navigation() {
                 </Link>
               )
             ))}
-            <Button variant="ghost" size="sm" className="w-full mt-4 justify-center">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full mt-4 justify-center"
+              onClick={() => {
+                if (user) {
+                  navigate('/account');
+                } else {
+                  setAuthModalOpen(true);
+                }
+                setIsOpen(false);
+              }}
+              disabled={loading}
+            >
               <User className="h-4 w-4 mr-2" />
-              Account
+              {user ? 'Account' : 'Sign In'}
             </Button>
           </div>
         </div>
@@ -112,6 +142,9 @@ export function Navigation() {
 
       {/* Spacer to prevent content from hiding behind fixed nav */}
       <div className="h-16" />
+
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </>
   );
 }
