@@ -2,44 +2,93 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
+import { PasswordResetSuccess } from '@/components/PasswordResetSuccess';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Lock, Eye, EyeOff, CheckCircle, Shield } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, Lock, Eye, EyeOff, Shield } from 'lucide-react';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { updatePassword, user } = useAuth();
+  const { updatePassword, user, session } = useAuth();
   const { toast } = useToast();
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isValidSession, setIsValidSession] = useState(false);
   
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: ''
   });
 
-  // Check if user is authenticated via the reset link
+  // Handle the password reset session from URL parameters
   useEffect(() => {
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    
-    if (!accessToken && !user) {
-      toast({
-        title: "Invalid Reset Link",
-        description: "This password reset link is invalid or expired. Please request a new one.",
-        variant: "destructive",
-      });
-      navigate('/');
-    }
-  }, [searchParams, user, navigate, toast]);
+    const handlePasswordReset = async () => {
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+      const type = searchParams.get('type');
+      
+      // Check if this is a password recovery session
+      if (accessToken && refreshToken && type === 'recovery') {
+        try {
+          // Set the session from the URL tokens
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          
+          if (error) {
+            console.error('Session error:', error);
+            toast({
+              title: "Invalid Reset Link",
+              description: "This password reset link is invalid or expired. Please request a new one.",
+              variant: "destructive",
+            });
+            navigate('/');
+            return;
+          }
+          
+          if (data.session) {
+            setIsValidSession(true);
+            toast({
+              title: "Reset Link Verified",
+              description: "You can now set your new password.",
+            });
+          }
+        } catch (error) {
+          console.error('Error setting session:', error);
+          toast({
+            title: "Session Error",
+            description: "There was an error processing your reset link. Please try again.",
+            variant: "destructive",
+          });
+          navigate('/');
+        }
+      } else {
+        // If no valid tokens, check if user is already authenticated
+        if (session && user) {
+          setIsValidSession(true);
+        } else {
+          toast({
+            title: "Invalid Reset Link",
+            description: "This password reset link is invalid or expired. Please request a new one.",
+            variant: "destructive",
+          });
+          navigate('/');
+        }
+      }
+    };
+
+    handlePasswordReset();
+  }, [searchParams, navigate, toast, session, user]);
 
   const validatePassword = (password: string) => {
     const errors = [];
@@ -109,6 +158,9 @@ const ResetPassword = () => {
           description: "Your password has been changed. You can now sign in with your new password.",
         });
         
+        // Sign out the user after password reset to ensure they use the new password
+        await supabase.auth.signOut();
+        
         // Redirect to home page after 3 seconds
         setTimeout(() => {
           navigate('/');
@@ -125,31 +177,17 @@ const ResetPassword = () => {
     }
   };
 
-  if (isSuccess) {
+  // Show loading state while validating session
+  if (!isValidSession && !isSuccess) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation />
         <main className="pt-16 pb-20">
           <div className="container mx-auto px-4 max-w-md">
             <Card className="bg-card border-border">
-              <CardHeader className="text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 mx-auto mb-4 flex items-center justify-center">
-                  <CheckCircle className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-2xl font-bold text-primary">
-                  Password Reset Successful!
-                </CardTitle>
-                <CardDescription>
-                  Your password has been successfully updated. You will be redirected to the homepage shortly.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <Button 
-                  onClick={() => navigate('/')}
-                  className="w-full bg-gradient-hero text-white hover:opacity-90"
-                >
-                  Continue to Homepage
-                </Button>
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground">Verifying reset link...</p>
               </CardContent>
             </Card>
           </div>
@@ -157,6 +195,10 @@ const ResetPassword = () => {
         <Footer />
       </div>
     );
+  }
+
+  if (isSuccess) {
+    return <PasswordResetSuccess onContinue={() => navigate('/')} />;
   }
 
   return (
