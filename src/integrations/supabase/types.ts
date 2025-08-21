@@ -14,7 +14,227 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      lending_pools: {
+        Row: {
+          apy: number
+          available_liquidity: number
+          created_at: string
+          id: string
+          is_active: boolean
+          risk_level: string
+          token: string
+          total_deposited: number
+          updated_at: string
+        }
+        Insert: {
+          apy: number
+          available_liquidity?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          risk_level: string
+          token: string
+          total_deposited?: number
+          updated_at?: string
+        }
+        Update: {
+          apy?: number
+          available_liquidity?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          risk_level?: string
+          token?: string
+          total_deposited?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      loans: {
+        Row: {
+          borrowed_amount: number
+          borrowed_asset: string
+          collateral_amount: number
+          collateral_asset: string
+          created_at: string
+          health_factor: number
+          id: string
+          interest_rate: number
+          loan_id: string
+          ltv_ratio: number
+          next_payment_due: string | null
+          payment_amount: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          borrowed_amount: number
+          borrowed_asset: string
+          collateral_amount: number
+          collateral_asset: string
+          created_at?: string
+          health_factor: number
+          id?: string
+          interest_rate: number
+          loan_id: string
+          ltv_ratio: number
+          next_payment_due?: string | null
+          payment_amount?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          borrowed_amount?: number
+          borrowed_asset?: string
+          collateral_amount?: number
+          collateral_asset?: string
+          created_at?: string
+          health_factor?: number
+          id?: string
+          interest_rate?: number
+          loan_id?: string
+          ltv_ratio?: number
+          next_payment_due?: string | null
+          payment_amount?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          wallet_address: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          wallet_address?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          asset: string
+          created_at: string
+          id: string
+          reference_id: string | null
+          status: string
+          transaction_hash: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          asset: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          status?: string
+          transaction_hash?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          asset?: string
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          status?: string
+          transaction_hash?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_lending_positions: {
+        Row: {
+          created_at: string
+          deposited_amount: number
+          earned_amount: number
+          id: string
+          last_reward_update: string
+          pool_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deposited_amount?: number
+          earned_amount?: number
+          id?: string
+          last_reward_update?: string
+          pool_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deposited_amount?: number
+          earned_amount?: number
+          id?: string
+          last_reward_update?: string
+          pool_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_lending_positions_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "lending_pools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
