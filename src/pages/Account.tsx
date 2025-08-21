@@ -1,6 +1,10 @@
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
+import { useLending } from '@/hooks/useLending';
+import { useBorrowing } from '@/hooks/useBorrowing';
+import { TransactionHistory } from '@/components/TransactionHistory';
+import { WalletDisplay } from '@/components/WalletDisplay';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +26,8 @@ import { useToast } from '@/hooks/use-toast';
 
 const Account = () => {
   const { user, signOut } = useAuth();
+  const { positions, wallets } = useLending();
+  const { loans } = useBorrowing();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -146,21 +152,27 @@ const Account = () => {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-muted/30 rounded-lg">
-                      <DollarSign className="h-8 w-8 text-lego-green mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-lego-green">$0.00</p>
+                      <DollarSign className="h-8 w-8 text-primary mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-primary">
+                        ${positions.reduce((total, pos) => total + pos.deposited_amount, 0).toLocaleString()}
+                      </p>
                       <p className="text-sm text-muted-foreground">Total Lent</p>
                     </div>
                     
                     <div className="text-center p-4 bg-muted/30 rounded-lg">
-                      <TrendingUp className="h-8 w-8 text-lego-orange mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-lego-orange">$0.00</p>
+                      <TrendingUp className="h-8 w-8 text-secondary mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-secondary">
+                        ${loans.reduce((total, loan) => total + loan.borrowed_amount, 0).toLocaleString()}
+                      </p>
                       <p className="text-sm text-muted-foreground">Total Borrowed</p>
                     </div>
                     
                     <div className="text-center p-4 bg-muted/30 rounded-lg">
-                      <Activity className="h-8 w-8 text-lego-purple mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-lego-purple">$0.00</p>
-                      <p className="text-sm text-muted-foreground">Total Staked</p>
+                      <Activity className="h-8 w-8 text-accent mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-accent">
+                        ${positions.reduce((total, pos) => total + pos.earned_amount, 0).toLocaleString()}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Total Earned</p>
                     </div>
                   </div>
 
@@ -183,10 +195,14 @@ const Account = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Transaction History */}
+              <TransactionHistory />
             </div>
 
-            {/* Quick Actions Sidebar */}
+            {/* Quick Actions and Wallet Sidebar */}
             <div className="space-y-6">
+              <WalletDisplay />
               <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { LegoBlock } from './LegoBlock';
+import { WalletDisplay } from './WalletDisplay';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -14,8 +15,10 @@ import {
   Gavel,
   Star
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function DashboardSection() {
+  const navigate = useNavigate();
   return (
     <section id="dashboard" className="py-20 bg-gradient-to-b from-background to-muted/20">
       <div className="container mx-auto px-4">
@@ -29,7 +32,12 @@ export function DashboardSection() {
         </div>
 
         {/* Main Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
+          {/* Wallet Display */}
+          <div className="lg:col-span-1">
+            <WalletDisplay />
+          </div>
+
           {/* Credit Score & AI Panel */}
           <div className="lg:col-span-1">
             <LegoBlock color="purple" className="h-full">
@@ -77,7 +85,11 @@ export function DashboardSection() {
                     <Progress value={80} className="bg-white/20" />
                   </div>
                 </div>
-                <Button variant="secondary" className="w-full mt-4">
+                <Button 
+                  variant="secondary" 
+                  className="w-full mt-4"
+                  onClick={() => navigate('/lending')}
+                >
                   Deposit Assets
                 </Button>
               </div>
@@ -112,7 +124,11 @@ export function DashboardSection() {
                     </div>
                   </div>
                 </div>
-                <Button variant="secondary" className="w-full mt-4">
+                <Button 
+                  variant="secondary" 
+                  className="w-full mt-4"
+                  onClick={() => navigate('/borrowing')}
+                >
                   Borrow Now
                 </Button>
               </div>
