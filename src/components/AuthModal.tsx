@@ -17,13 +17,15 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
-  const { signIn, signUp } = useAuth();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const { signIn, signUp, resetPassword } = useAuth();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    resetEmail: ''
   });
 
   const handleSubmit = async (type: 'signin' | 'signup') => {
@@ -84,7 +86,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             : "Please check your email to verify your account.",
         });
         onOpenChange(false);
-        setFormData({ email: '', password: '', confirmPassword: '' });
+        setFormData({ email: '', password: '', confirmPassword: '', resetEmail: '' });
       }
     } catch (error) {
       toast({
@@ -97,17 +99,123 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!formData.resetEmail) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(formData.resetEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await resetPassword(formData.resetEmail);
+
+      if (error) {
+        toast({
+          title: "Reset Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Reset Email Sent!",
+          description: "Check your email for password reset instructions.",
+        });
+        setShowForgotPassword(false);
+        setFormData(prev => ({ ...prev, resetEmail: '' }));
+      }
+    } catch (error) {
+      toast({
+        title: "Unexpected Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetModal = () => {
+    setShowForgotPassword(false);
+    setActiveTab('signin');
+    setFormData({ email: '', password: '', confirmPassword: '', resetEmail: '' });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold gradient-text">
-            Welcome to BriqFi
+            {showForgotPassword ? "Reset Password" : "Welcome to BriqFi"}
           </DialogTitle>
-          <DialogDescription className="sr-only">Authentication modal</DialogDescription>
+          <DialogDescription className="sr-only">
+            {showForgotPassword ? "Reset your password" : "Authentication modal"}
+          </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {showForgotPassword ? (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <p className="text-sm text-muted-foreground">
+                Enter your email address and we'll send you a link to reset your password.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="reset-email" className="text-sm font-medium">
+                Email Address
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={formData.resetEmail}
+                  onChange={(e) => setFormData(prev => ({ ...prev, resetEmail: e.target.value }))}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col space-y-2">
+              <Button
+                onClick={handleForgotPassword}
+                disabled={isLoading}
+                className="w-full bg-gradient-hero text-white hover:opacity-90"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Mail className="h-4 w-4 mr-2" />
+                )}
+                Send Reset Link
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={resetModal}
+                className="w-full text-muted-foreground"
+              >
+                Back to Sign In
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -173,6 +281,16 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               )}
               Sign In
             </Button>
+
+            <div className="text-center mt-4">
+              <Button
+                variant="link"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm text-muted-foreground hover:text-primary p-0"
+              >
+                Forgot your password?
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="signup" className="space-y-4">
@@ -254,6 +372,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </Button>
           </TabsContent>
         </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );
