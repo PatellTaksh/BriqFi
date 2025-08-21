@@ -10,11 +10,22 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Brain, Calculator, Shield, AlertTriangle, TrendingDown, Banknote } from 'lucide-react';
+import { useBorrowing } from '@/hooks/useBorrowing';
+import { useAuth } from '@/hooks/useAuth';
+import { BorrowingActionDialog } from '@/components/BorrowingActionDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const Borrowing = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { loans, wallets, loading, createLoan, makePayment, addCollateral } = useBorrowing();
+  
   const [loanAmount, setLoanAmount] = useState('');
   const [collateralAmount, setCollateralAmount] = useState('');
   const [ltvRatio, setLtvRatio] = useState([65]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState<'borrow' | 'payment' | 'collateral' | 'apply'>('borrow');
+  const [selectedLoan, setSelectedLoan] = useState<any>(null);
 
   const aiCreditScore = 742;
   const creditTier = 'Excellent';
@@ -52,20 +63,75 @@ const Borrowing = () => {
     { asset: 'ATOM', value: '850', amount: '150', ltv: '65%' }
   ];
 
-  const activeLoans = [
-    {
-      id: 'LOAN-001',
-      asset: 'USDT',
-      amount: '5,000',
-      collateral: 'ETH',
-      collateralAmount: '2.8',
-      rate: '9.2%',
-      ltv: '68%',
-      healthFactor: 1.47,
-      nextPayment: '2024-02-15',
-      paymentAmount: '127.50'
+  const handleBorrowClick = (asset: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access borrowing features.",
+        variant: "destructive",
+      });
+      return;
     }
-  ];
+    setDialogAction('borrow');
+    setDialogOpen(true);
+  };
+
+  const handlePaymentClick = (loan: any) => {
+    setSelectedLoan(loan);
+    setDialogAction('payment');
+    setDialogOpen(true);
+  };
+
+  const handleAddCollateralClick = (loan: any) => {
+    setSelectedLoan(loan);
+    setDialogAction('collateral');
+    setDialogOpen(true);
+  };
+
+  const handleApplyClick = () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to apply for loans.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDialogAction('apply');
+    setDialogOpen(true);
+  };
+
+  const handleDialogAction = async (data: any) => {
+    switch (dialogAction) {
+      case 'borrow':
+        // For now, just show success - implement actual borrow logic
+        toast({
+          title: "Borrow Request Submitted",
+          description: `Your request to borrow ${data.amount} ${data.asset} has been submitted.`,
+        });
+        return true;
+      case 'payment':
+        return await makePayment(data.loanId, data.amount);
+      case 'collateral':
+        return await addCollateral(data.loanId, data.amount);
+      case 'apply':
+        return await createLoan(
+          data.borrowedAsset,
+          data.borrowedAmount,
+          data.collateralAsset,
+          data.collateralAmount,
+          data.interestRate,
+          data.ltvRatio
+        );
+      default:
+        return false;
+    }
+  };
+
+  const getUserBalance = (token: string) => {
+    const wallet = wallets.find(w => w.token === token);
+    return wallet?.balance || 0;
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -142,7 +208,11 @@ const Borrowing = () => {
                       </div>
                     </div>
 
-                    <Button className="w-full">
+                    <Button 
+                      className="w-full"
+                      onClick={() => handleBorrowClick(option.asset)}
+                      disabled={loading}
+                    >
                       Borrow {option.asset}
                     </Button>
                   </CardContent>
@@ -153,73 +223,116 @@ const Borrowing = () => {
 
           {/* Active Loans */}
           <TabsContent value="loans" className="space-y-6">
-            {activeLoans.map((loan) => (
-              <Card key={loan.id} className="border-border bg-card/50 backdrop-blur-sm">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>{loan.id}</CardTitle>
-                    <Badge variant={loan.healthFactor > 1.5 ? 'secondary' : loan.healthFactor > 1.2 ? 'default' : 'destructive'}>
-                      Health: {loan.healthFactor}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div>
-                      <div className="text-sm text-muted-foreground">Borrowed</div>
-                      <div className="text-xl font-bold">{loan.amount} {loan.asset}</div>
-                      <div className="text-sm text-muted-foreground">@ {loan.rate}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Collateral</div>
-                      <div className="text-xl font-bold">{loan.collateralAmount} {loan.collateral}</div>
-                      <div className="text-sm text-muted-foreground">LTV: {loan.ltv}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Next Payment</div>
-                      <div className="text-lg font-bold">${loan.paymentAmount}</div>
-                      <div className="text-sm text-muted-foreground">{loan.nextPayment}</div>
-                    </div>
-                    <div className="flex flex-col space-y-2">
-                      <Button size="sm">Make Payment</Button>
-                      <Button variant="outline" size="sm">Add Collateral</Button>
-                    </div>
-                  </div>
+            {loans.length === 0 ? (
+              <Card className="border-border bg-card/50 backdrop-blur-sm">
+                <CardContent className="p-12 text-center">
+                  <div className="text-muted-foreground">No active loans. Apply for a loan to get started!</div>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              loans.map((loan) => (
+                <Card key={loan.id} className="border-border bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>{loan.loan_id}</CardTitle>
+                      <Badge variant={loan.health_factor > 1.5 ? 'secondary' : loan.health_factor > 1.2 ? 'default' : 'destructive'}>
+                        Health: {loan.health_factor.toFixed(2)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div>
+                        <div className="text-sm text-muted-foreground">Borrowed</div>
+                        <div className="text-xl font-bold">{loan.borrowed_amount} {loan.borrowed_asset}</div>
+                        <div className="text-sm text-muted-foreground">@ {loan.interest_rate}%</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Collateral</div>
+                        <div className="text-xl font-bold">{loan.collateral_amount} {loan.collateral_asset}</div>
+                        <div className="text-sm text-muted-foreground">LTV: {loan.ltv_ratio}%</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Next Payment</div>
+                        <div className="text-lg font-bold">${loan.payment_amount.toFixed(2)}</div>
+                        <div className="text-sm text-muted-foreground">{loan.next_payment_due}</div>
+                      </div>
+                      <div className="flex flex-col space-y-2">
+                        <Button 
+                          size="sm"
+                          onClick={() => handlePaymentClick(loan)}
+                          disabled={loading}
+                        >
+                          Make Payment
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleAddCollateralClick(loan)}
+                          disabled={loading}
+                        >
+                          Add Collateral
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </TabsContent>
 
           {/* Collateral Management */}
           <TabsContent value="collateral" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {collateralAssets.map((asset) => (
-                <Card key={asset.asset} className="border-border bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle>{asset.asset}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Amount</span>
-                        <span className="font-bold">{asset.amount} {asset.asset}</span>
+              {collateralAssets.map((asset) => {
+                const userBalance = getUserBalance(asset.asset);
+                return (
+                  <Card key={asset.asset} className="border-border bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle>{asset.asset}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Your Balance</span>
+                          <span className="font-bold">{userBalance} {asset.asset}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Est. Value</span>
+                          <span className="font-bold">${(userBalance * parseFloat(asset.value.replace(',', ''))).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Max LTV</span>
+                          <span className="font-bold">{asset.ltv}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Value</span>
-                        <span className="font-bold">${asset.value}</span>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          disabled
+                        >
+                          Withdraw
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          disabled={!user || loading}
+                          onClick={() => {
+                            toast({
+                              title: "Feature Coming Soon",
+                              description: "Direct collateral management will be available soon.",
+                            });
+                          }}
+                        >
+                          Add More
+                        </Button>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Max LTV</span>
-                        <span className="font-bold">{asset.ltv}</span>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">Withdraw</Button>
-                      <Button size="sm" className="flex-1">Add More</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 
@@ -298,13 +411,27 @@ const Borrowing = () => {
                   </div>
                 </div>
 
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={handleApplyClick}
+                  disabled={loading}
+                >
                   Apply for Loan
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+        
+        <BorrowingActionDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          action={dialogAction}
+          loan={selectedLoan}
+          wallets={wallets}
+          onAction={handleDialogAction}
+          loading={loading}
+        />
       </main>
 
       <Footer />
