@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { Coins, TrendingUp, Shield, Zap, Plus, Wallet } from 'lucide-react';
+import { Coins, TrendingUp, Shield, Zap, Plus, Wallet, PiggyBank } from 'lucide-react';
 import { useLending } from '@/hooks/useLending';
 import { useAuth } from '@/hooks/useAuth';
 import { LendingActionDialog } from '@/components/LendingActionDialog';
+import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/hooks/use-toast';
 
 const Lending = () => {
@@ -200,11 +201,17 @@ const Lending = () => {
           {/* My Positions */}
           <TabsContent value="positions" className="space-y-6">
             {positions.length === 0 ? (
-              <Card className="border-border bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-12 text-center">
-                  <div className="text-muted-foreground">No lending positions found. Start lending to earn rewards!</div>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={PiggyBank}
+                title="No Active Positions"
+                description="Start your DeFi journey by lending assets to earn passive income. Choose from our AI-optimized pools with competitive rates."
+                actionLabel="Browse Lending Pools"
+                onAction={() => {
+                  const tabsList = document.querySelector('[data-state="active"][value="positions"]')?.closest('[role="tablist"]');
+                  const poolsTab = tabsList?.querySelector('[value="pools"]') as HTMLElement;
+                  poolsTab?.click();
+                }}
+              />
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {positions.map((position) => (

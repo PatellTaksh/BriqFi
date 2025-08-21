@@ -1,10 +1,31 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, MessageCircle, Send } from 'lucide-react';
+import { useContact } from '@/hooks/useContact';
 
 export function ContactSection() {
+  const { submitContactMessage, loading } = useContact();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = await submitContactMessage(formData);
+    if (success) {
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }
+  };
   return (
     <section id="contact" className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -22,30 +43,48 @@ export function ContactSection() {
               <CardTitle className="text-2xl text-foreground">Send us a Message</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input 
+                    placeholder="Your Name" 
+                    className="bg-background/50 border-border"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    required
+                  />
+                  <Input 
+                    placeholder="Your Email" 
+                    type="email" 
+                    className="bg-background/50 border-border"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    required
+                  />
+                </div>
                 <Input 
-                  placeholder="Your Name" 
+                  placeholder="Subject" 
                   className="bg-background/50 border-border"
+                  value={formData.subject}
+                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  required
                 />
-                <Input 
-                  placeholder="Your Email" 
-                  type="email" 
-                  className="bg-background/50 border-border"
+                <Textarea 
+                  placeholder="Your Message" 
+                  rows={5}
+                  className="bg-background/50 border-border resize-none"
+                  value={formData.message}
+                  onChange={(e) => handleInputChange('message', e.target.value)}
+                  required
                 />
-              </div>
-              <Input 
-                placeholder="Subject" 
-                className="bg-background/50 border-border"
-              />
-              <Textarea 
-                placeholder="Your Message" 
-                rows={5}
-                className="bg-background/50 border-border resize-none"
-              />
-              <Button className="w-full">
-                <Send className="h-4 w-4 mr-2" />
-                Send Message
-              </Button>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={loading}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {loading ? 'Sending...' : 'Send Message'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
 

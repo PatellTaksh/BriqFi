@@ -9,10 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Brain, Calculator, Shield, AlertTriangle, TrendingDown, Banknote } from 'lucide-react';
+import { Brain, Calculator, Shield, AlertTriangle, TrendingDown, Banknote, CreditCard } from 'lucide-react';
 import { useBorrowing } from '@/hooks/useBorrowing';
 import { useAuth } from '@/hooks/useAuth';
 import { BorrowingActionDialog } from '@/components/BorrowingActionDialog';
+import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/hooks/use-toast';
 
 const Borrowing = () => {
@@ -224,11 +225,17 @@ const Borrowing = () => {
           {/* Active Loans */}
           <TabsContent value="loans" className="space-y-6">
             {loans.length === 0 ? (
-              <Card className="border-border bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-12 text-center">
-                  <div className="text-muted-foreground">No active loans. Apply for a loan to get started!</div>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={CreditCard}
+                title="No Active Loans"
+                description="Apply for AI-powered loans with competitive rates based on your credit score. Get instant approvals with flexible terms."
+                actionLabel="Apply for a Loan"
+                onAction={() => {
+                  const tabsList = document.querySelector('[data-state="active"][value="loans"]')?.closest('[role="tablist"]');
+                  const calculatorTab = tabsList?.querySelector('[value="calculator"]') as HTMLElement;
+                  calculatorTab?.click();
+                }}
+              />
             ) : (
               loans.map((loan) => (
                 <Card key={loan.id} className="border-border bg-card/50 backdrop-blur-sm">
@@ -320,10 +327,25 @@ const Borrowing = () => {
                           className="flex-1"
                           disabled={!user || loading}
                           onClick={() => {
-                            toast({
-                              title: "Feature Coming Soon",
-                              description: "Direct collateral management will be available soon.",
-                            });
+                            if (userBalance === 0) {
+                              toast({
+                                title: "Insufficient Balance",
+                                description: `You don't have any ${asset.asset} to add as collateral.`,
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            // Find an active loan to add collateral to
+                            const activeLoan = loans.find(loan => loan.collateral_asset === asset.asset);
+                            if (activeLoan) {
+                              handleAddCollateralClick(activeLoan);
+                            } else {
+                              toast({
+                                title: "No Active Loan Found",
+                                description: `You need an active loan with ${asset.asset} collateral to add more.`,
+                                variant: "destructive",
+                              });
+                            }
                           }}
                         >
                           Add More
