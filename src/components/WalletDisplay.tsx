@@ -3,35 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Wallet, Eye, EyeOff, Coins } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useLending } from '@/hooks/useLending';
+import { useAccount } from 'wagmi';
+import { useWeb3Lending } from '@/hooks/useWeb3Lending';
 import { EmptyState } from '@/components/EmptyState';
+import { WalletConnect } from '@/components/WalletConnect';
 
 export function WalletDisplay() {
-  const { user } = useAuth();
-  const { wallets, loading } = useLending();
+  const { isConnected } = useAccount();
+  const { pools, userPositions, loading, userTokenBalance } = useWeb3Lending();
   const [showBalances, setShowBalances] = useState(true);
 
-  if (!user) {
-    return (
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-primary" />
-            Wallet
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EmptyState
-            icon={Wallet}
-            title="Connect Wallet"
-            description="Sign in to view your wallet balances and start trading."
-            actionLabel="Sign In"
-            onAction={() => window.dispatchEvent(new CustomEvent('openAuth'))}
-          />
-        </CardContent>
-      </Card>
-    );
+  if (!isConnected) {
+    return <WalletConnect />;
   }
 
   if (loading) {
@@ -53,8 +36,8 @@ export function WalletDisplay() {
     );
   }
 
-  const totalValue = wallets.reduce((sum, wallet) => {
-    // Mock conversion rates (in a real app, you'd fetch these from an API)
+  // Calculate total value from blockchain positions
+  const totalValue = userPositions.reduce((sum, position) => {
     const conversionRates: { [key: string]: number } = {
       USDT: 1,
       USDC: 1,
@@ -62,7 +45,8 @@ export function WalletDisplay() {
       BTC: 42500,
       ATOM: 8.5,
     };
-    return sum + (wallet.balance * (conversionRates[wallet.token] || 1));
+    const balance = parseFloat(userTokenBalance || '0');
+    return sum + (balance * (conversionRates[position.tokenSymbol] || 1));
   }, 0);
 
   return (
@@ -95,50 +79,45 @@ export function WalletDisplay() {
         </div>
 
         <div className="space-y-3">
-          {wallets.length === 0 ? (
+          {userPositions.length === 0 ? (
             <EmptyState
               icon={Coins}
-              title="No Assets"
-              description="Your wallet is empty. Add funds to start using BriqFi."
+              title="No Positions"
+              description="You haven't deposited any assets yet. Start lending to earn rewards."
             />
           ) : (
-            wallets.map((wallet) => (
+            userPositions.map((position) => (
               <div
-                key={wallet.id}
+                key={position.poolId}
                 className="flex items-center justify-between p-3 bg-muted/20 rounded-lg border border-border/50"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center border border-border">
                     <span className="text-sm font-bold text-primary">
-                      {wallet.token.charAt(0)}
+                      {position.tokenSymbol.charAt(0)}
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium">{wallet.token}</p>
+                    <p className="font-medium">{position.tokenSymbol}</p>
                     <p className="text-sm text-muted-foreground">
-                      {wallet.token === 'BTC' ? 'Bitcoin' : 
-                       wallet.token === 'ETH' ? 'Ethereum' :
-                       wallet.token === 'USDT' ? 'Tether' :
-                       wallet.token === 'USDC' ? 'USD Coin' :
-                       wallet.token === 'ATOM' ? 'Cosmos' : wallet.token}
+                      {position.tokenSymbol === 'BTC' ? 'Bitcoin' : 
+                       position.tokenSymbol === 'ETH' ? 'Ethereum' :
+                       position.tokenSymbol === 'USDT' ? 'Tether' :
+                       position.tokenSymbol === 'USDC' ? 'USD Coin' :
+                       position.tokenSymbol === 'ATOM' ? 'Cosmos' : position.tokenSymbol}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-bold">
                     {showBalances 
-                      ? `${wallet.balance.toLocaleString()} ${wallet.token}`
+                      ? `${(Number(position.depositedAmount) / 1e18).toLocaleString()} ${position.tokenSymbol}`
                       : '•••••'
                     }
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-primary">
                     {showBalances 
-                      ? `$${(wallet.balance * (
-                          wallet.token === 'USDT' || wallet.token === 'USDC' ? 1 :
-                          wallet.token === 'ETH' ? 2250 :
-                          wallet.token === 'BTC' ? 42500 :
-                          wallet.token === 'ATOM' ? 8.5 : 1
-                        )).toLocaleString()}`
+                      ? `+${(Number(position.pendingRewards) / 1e18).toFixed(4)} rewards`
                       : '•••••'
                     }
                   </p>
