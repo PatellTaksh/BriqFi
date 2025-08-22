@@ -103,7 +103,7 @@ export function LendingActionDialog({
                 <div className="font-semibold">{pool.token} Pool</div>
                 <div className="text-sm text-muted-foreground">APY: {pool.apy}%</div>
               </div>
-              <Badge variant={pool.risk_level === 'Low' ? 'secondary' : 'default'}>
+              <Badge variant={pool.risk_level === 'low' ? 'secondary' : 'default'}>
                 {pool.risk_level} Risk
               </Badge>
             </div>

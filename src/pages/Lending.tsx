@@ -8,15 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Coins, TrendingUp, Shield, Zap, Plus, Wallet, PiggyBank } from 'lucide-react';
-import { useAccount } from 'wagmi';
-import { useWeb3Lending } from '@/hooks/useWeb3Lending';
+import { useLending } from '@/hooks/useLending';
 import { LendingActionDialog } from '@/components/LendingActionDialog';
+import { useAuth } from '@/hooks/useAuth';
 import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/hooks/use-toast';
 
 const Lending = () => {
-  const { isConnected } = useAccount();
-  const { pools, userPositions, loading, deposit, withdraw, userTokenBalance } = useWeb3Lending();
+  const { user } = useAuth();
+  const { pools, positions, wallets, loading, lendToPool, withdrawFromPosition } = useLending();
   const { toast } = useToast();
   
   const [stakeAmount, setStakeAmount] = useState('');
@@ -25,13 +25,13 @@ const Lending = () => {
   const [selectedPool, setSelectedPool] = useState<any>(null);
   const [selectedPosition, setSelectedPosition] = useState<any>(null);
 
-  // ... keep existing code (mock data arrays)
+  
   
   const handleLendClick = (pool: any) => {
-    if (!isConnected) {
+    if (!user) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to access lending features.",
+        title: "Authentication Required",
+        description: "Please log in to access lending features.",
         variant: "destructive",
       });
       return;
@@ -48,15 +48,15 @@ const Lending = () => {
   };
 
   const handleStakeClick = () => {
-    if (!isConnected) {
+    if (!user) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to stake assets.",
+        title: "Authentication Required",
+        description: "Please log in to stake assets.",
         variant: "destructive",
       });
       return;
     }
-    const usdtPool = pools.find(p => p.tokenSymbol === 'USDT');
+    const usdtPool = pools.find(p => p.token === 'USDT');
     if (usdtPool) {
       setSelectedPool(usdtPool);
       setDialogAction('stake');
@@ -66,20 +66,21 @@ const Lending = () => {
 
   const handleDialogAction = async (amount: number, poolId?: string, positionId?: string) => {
     if (dialogAction === 'lend' || dialogAction === 'stake') {
-      return await deposit(parseInt(poolId!), amount.toString());
+      return await lendToPool(poolId!, amount);
     } else if (dialogAction === 'withdraw') {
-      return await withdraw(parseInt(positionId!), amount.toString());
+      return await withdrawFromPosition(positionId!, amount);
     }
     return false;
   };
 
   const getUserBalance = (token: string) => {
-    return parseFloat(userTokenBalance || '0');
+    const wallet = wallets.find(w => w.token === token);
+    return wallet ? wallet.balance : 0;
   };
 
-  // Calculate total stats from blockchain data
-  const totalValueLocked = pools.reduce((sum, pool) => sum + Number(pool.totalDeposited) / 1e18, 0);
-  const averageApy = pools.length > 0 ? pools.reduce((sum, pool) => sum + pool.apy, 0) / pools.length / 100 : 0;
+  // Calculate total stats from database data
+  const totalValueLocked = pools.reduce((sum, pool) => sum + pool.total_deposited, 0);
+  const averageApy = pools.length > 0 ? pools.reduce((sum, pool) => sum + pool.apy, 0) / pools.length : 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -112,7 +113,7 @@ const Lending = () => {
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                           <Coins className="h-5 w-5 text-primary" />
                         </div>
-                        <CardTitle className="text-lg">{pool.tokenSymbol}</CardTitle>
+                        <CardTitle className="text-lg">{pool.token}</CardTitle>
                       </div>
                       <Badge variant="secondary">
                         Low Risk
@@ -121,18 +122,18 @@ const Lending = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-primary">{(pool.apy / 100).toFixed(1)}%</div>
+                      <div className="text-3xl font-bold text-primary">{pool.apy.toFixed(1)}%</div>
                       <div className="text-sm text-muted-foreground">Annual APY</div>
                     </div>
                     
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Total Deposited</span>
-                        <span className="font-medium">${(Number(pool.totalDeposited) / 1e18).toLocaleString()}</span>
+                        <span className="font-medium">${pool.total_deposited.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Available</span>
-                        <span className="font-medium">${(Number(pool.availableLiquidity) / 1e18).toLocaleString()}</span>
+                        <span className="font-medium">${pool.available_liquidity.toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -144,7 +145,7 @@ const Lending = () => {
                       disabled={loading}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Lend {pool.tokenSymbol}
+                      Lend {pool.token}
                     </Button>
                   </CardContent>
                 </Card>
@@ -199,7 +200,7 @@ const Lending = () => {
 
           {/* My Positions */}
           <TabsContent value="positions" className="space-y-6">
-            {userPositions.length === 0 ? (
+            {positions.length === 0 ? (
               <EmptyState
                 icon={PiggyBank}
                 title="No Active Positions"
@@ -213,23 +214,23 @@ const Lending = () => {
               />
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {userPositions.map((position) => (
-                  <Card key={position.poolId} className="border-border bg-card/50 backdrop-blur-sm">
+                {positions.map((position) => (
+                  <Card key={position.id} className="border-border bg-card/50 backdrop-blur-sm">
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
-                        <span>{position.tokenSymbol} Position</span>
-                        <Badge variant="outline">8.5% APY</Badge>
+                        <span>{position.token} Position</span>
+                        <Badge variant="outline">{position.apy}% APY</Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <div className="text-sm text-muted-foreground">Deposited</div>
-                          <div className="text-xl font-bold">{(Number(position.depositedAmount) / 1e18).toFixed(2)} {position.tokenSymbol}</div>
+                          <div className="text-xl font-bold">{position.deposited_amount.toFixed(2)} {position.token}</div>
                         </div>
                         <div>
                           <div className="text-sm text-muted-foreground">Earned</div>
-                          <div className="text-xl font-bold text-primary">+{(Number(position.pendingRewards) / 1e18).toFixed(4)} {position.tokenSymbol}</div>
+                          <div className="text-xl font-bold text-primary">+{position.earned_amount.toFixed(4)} {position.token}</div>
                         </div>
                       </div>
                       <div className="flex space-x-2">
@@ -244,7 +245,7 @@ const Lending = () => {
                         <Button 
                           className="flex-1"
                           onClick={() => {
-                            const pool = pools.find(p => p.id === position.poolId);
+                            const pool = pools.find(p => p.id === position.pool_id);
                             if (pool) handleLendClick(pool);
                           }}
                           disabled={loading}
@@ -310,7 +311,7 @@ const Lending = () => {
           action={dialogAction}
           pool={selectedPool}
           position={selectedPosition}
-          userBalance={selectedPool ? getUserBalance(selectedPool.tokenSymbol) : (selectedPosition ? getUserBalance(selectedPosition.tokenSymbol) : 0)}
+          userBalance={selectedPool ? getUserBalance(selectedPool.token) : (selectedPosition ? getUserBalance(selectedPosition.token) : 0)}
           onAction={handleDialogAction}
           loading={loading}
         />
