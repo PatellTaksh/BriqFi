@@ -38,9 +38,8 @@ export function Navigation() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <Blocks className="h-8 w-8 text-primary animate-pulse-glow" />
-              <span className="text-2xl font-bold gradient-text">BriqFi</span>
+            <Link to="/" className="flex items-center">
+              <span className="text-2xl font-bold gradient-text">Briqfi</span>
             </Link>
 
             {/* Desktop Navigation */}
