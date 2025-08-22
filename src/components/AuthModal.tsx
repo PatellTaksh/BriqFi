@@ -159,7 +159,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       <DialogContent className="sm:max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold gradient-text">
-            {showForgotPassword ? "Reset Password" : "Welcome to Briqfi"}
+            {showForgotPassword ? "Reset Password" : "Welcome to BriqFi"}
           </DialogTitle>
           <DialogDescription className="sr-only">
             {showForgotPassword ? "Reset your password" : "Authentication modal"}

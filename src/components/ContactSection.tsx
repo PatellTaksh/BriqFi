@@ -32,7 +32,7 @@ export function ContactSection() {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold gradient-text mb-4">Get in Touch</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Have questions about Briqfi? Our team is here to help you navigate the world of modular DeFi.
+            Have questions about BriqFi? Our team is here to help you navigate the world of modular DeFi.
           </p>
         </div>
 
