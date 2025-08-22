@@ -5,8 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigationState } from '@/hooks/useNavigationState';
 import { Loader2, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthModalProps {
   open: boolean;
@@ -20,6 +22,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signUp, resetPassword } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { currentPath } = useNavigationState();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -87,6 +91,14 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         });
         onOpenChange(false);
         setFormData({ email: '', password: '', confirmPassword: '', resetEmail: '' });
+        
+        // For sign-in, navigate to account only if on public pages, otherwise stay on current page
+        if (type === 'signin') {
+          if (currentPath === '/' || currentPath === '/about' || currentPath === '/contact') {
+            navigate('/account');
+          }
+          // For other pages, user stays where they are
+        }
       }
     } catch (error) {
       toast({

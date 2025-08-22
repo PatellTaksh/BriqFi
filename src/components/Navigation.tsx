@@ -21,16 +21,20 @@ export function Navigation() {
     { name: 'Contact', href: '/contact' }
   ];
 
-  // Redirect to Account page after successful auth from anywhere
+  // Handle auth modal closure on successful auth
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
         setAuthModalOpen(false);
-        navigate('/account');
+        // Only redirect to account if user is on home page or not authenticated before
+        // This prevents unwanted redirects when returning from other tabs/apps
+        if (location.pathname === '/' || location.pathname === '/about' || location.pathname === '/contact') {
+          navigate('/account');
+        }
       }
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   return (
     <>

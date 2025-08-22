@@ -1,6 +1,7 @@
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigationState } from '@/hooks/useNavigationState';
 import { useLending } from '@/hooks/useLending';
 import { useBorrowing } from '@/hooks/useBorrowing';
 import { TransactionHistory } from '@/components/TransactionHistory';
@@ -30,6 +31,7 @@ const Account = () => {
   const { loans } = useBorrowing();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { clearLastVisited } = useNavigationState();
 
   // Redirect if not authenticated
   if (!user) {
@@ -46,6 +48,8 @@ const Account = () => {
         variant: "destructive",
       });
     } else {
+      // Clear the last visited page on sign out
+      clearLastVisited();
       toast({
         title: "Signed Out",
         description: "You have been successfully signed out.",
