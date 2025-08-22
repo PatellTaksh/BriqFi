@@ -38,7 +38,7 @@ const About = () => {
   ];
 
   const milestones = [
-    { year: '2023', event: 'Founded BriqFi', description: 'Started development of modular DeFi infrastructure' },
+    { year: '2023', event: 'Founded Briqfi', description: 'Started development of modular DeFi infrastructure' },
     { year: '2023', event: 'Seed Funding', description: 'Raised $2M in seed funding from top VCs' },
     { year: '2024', event: 'Testnet Launch', description: 'Successfully launched on Andromeda testnet' },
     { year: '2024', event: 'Security Audits', description: 'Completed audits by CertiK and ConsenSys' },
@@ -75,9 +75,9 @@ const About = () => {
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold gradient-text mb-6">About BriqFi</h1>
+          <h1 className="text-5xl font-bold gradient-text mb-6">About Briqfi</h1>
           <p className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            BriqFi is revolutionizing DeFi with modular, Lego-inspired financial building blocks. 
+            Briqfi is revolutionizing DeFi with modular, Lego-inspired financial building blocks.
             Our AI-powered platform on the Andromeda blockchain makes decentralized finance 
             accessible, secure, and infinitely customizable.
           </p>
@@ -251,7 +251,7 @@ const About = () => {
               <h2 className="text-3xl font-bold mb-6">Join the Future of DeFi</h2>
               <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
                 Ready to build your perfect DeFi solution? Connect with our team or 
-                join our community to get started with BriqFi today.
+                join our community to get started with Briqfi today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg">

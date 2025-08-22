@@ -48,8 +48,7 @@ export function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <Blocks className="h-8 w-8 text-primary animate-pulse-glow" />
-              <span className="text-2xl font-bold gradient-text">BriqFi</span>
+              <span className="text-2xl font-bold gradient-text">Briqfi</span>
             </div>
             <p className="text-muted-foreground mb-6 max-w-sm">
               Build your perfect DeFi portfolio with modular Lego-inspired blocks on Andromeda blockchain.
@@ -93,7 +92,7 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-muted-foreground text-sm">
-            © 2024 BriqFi. Built on Andromeda blockchain.
+            © 2024 Briqfi. Built on Andromeda blockchain.
           </div>
           <div className="text-muted-foreground text-sm mt-4 md:mt-0">
             Audited by <span className="text-primary">CertiK</span> & <span className="text-primary">ConsenSys</span>

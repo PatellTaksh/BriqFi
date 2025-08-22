@@ -72,7 +72,7 @@ const Account = () => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-4xl font-bold gradient-text mb-2">Account Dashboard</h1>
-                <p className="text-muted-foreground">Manage your BriqFi account and DeFi portfolio</p>
+                <p className="text-muted-foreground">Manage your Briqfi account and DeFi portfolio</p>
               </div>
               <Button 
                 variant="outline" 
